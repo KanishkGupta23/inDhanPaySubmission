@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:my_app/wallpapers/wallpaper_widget.dart';
@@ -10,21 +13,24 @@ class WallpaperScreen extends StatefulWidget {
 }
 
 class __WallpaperScreenStateState extends State<WallpaperScreen> {
+  Uint8List? imageUrl;
 
   void initState() {
     super.initState();
     // Initialize any data or state here
+    getImage();
   }
 
-  getImage() async{
+  Future<void> getImage() async{
     var client = http.Client();
     
     try {
-      var response = await http.get(Uri.https('https://picsum.photos/id/237/200/300'));
+      var response = await http.get(Uri.parse('https://picsum.photos/id/237/200/300'));
       if (response.statusCode >=200 && response.statusCode<300){
-          var result = Uri.parse(response.body);
-          var imageUrl = result.toString();
-          print(imageUrl);
+          imageUrl = response.bodyBytes; // Here was the error firstly where I was trying to fetch image as body now have replaced it with bodyBytes.
+          setState(() {                   // took refrence from Quora and stackoverflow.
+            imageUrl = imageUrl;
+          });
       }
     }
     catch (e) {
@@ -40,17 +46,23 @@ class __WallpaperScreenStateState extends State<WallpaperScreen> {
       appBar: AppBar(
         title: Text('Wallpapers'),
       ),
-      body: StreamBuilder(
-        stream: getImage().asStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
-            return WallpaperWidget(imageUrl: snapshot.data.toString());
-          }
-        },
+      //Firstly I have used the StreamBuilder widget to get the image from the API and then I have directly used the WallpaperWidget to display the image. 
+      //As there is no need of stream builder here I have removed it and used the WallpaperWidget directly.
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text(
+              'Image from API',
+            ),
+            imageUrl != null ? WallpaperWidget(imageUrl: imageUrl!) : CircularProgressIndicator(),
+            ElevatedButton(onPressed: (){
+              setState(() {
+                getImage();
+              });
+            }, child: Text('Refresh Image')),
+          ],
+        ),
       ),
     );
   }

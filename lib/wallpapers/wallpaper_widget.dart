@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class WallpaperWidget extends StatefulWidget {
   const WallpaperWidget({super.key, required this.imageUrl});
-  final String imageUrl;
+  final Uint8List imageUrl;
   @override
   State<WallpaperWidget> createState() => _WallpaperWidgetState();
 }
@@ -13,7 +14,7 @@ class _WallpaperWidgetState extends State<WallpaperWidget> {
     return Container(
       height: 400,
       width: 400,
-      child: Image.network(widget.imageUrl),
+      child: Image.memory(widget.imageUrl),
     );
   }
 }
